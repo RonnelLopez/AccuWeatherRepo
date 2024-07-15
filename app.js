@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const apiKey = "Kh5gVQGfC0TJzPYg2qFZPHuQ6DYFOutr"; // Replace with your actual API key
+    const apiKey = "hjxf9u0ZGJX1fJNQy6Miu65m1MCDrC6v"; // Replace with your actual API key
     const form = document.getElementById("cityForm");
     const weatherDiv = document.getElementById("weather");
 
@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data && data.length > 0) {
                     const locationKey = data[0].Key;
                     fetchWeatherData(locationKey);
+                    fetch5DailyData(locationKey);
+                    
                 } else {
                     weatherDiv.innerHTML = `<p>City not found.</p>`;
                 }
@@ -44,16 +46,75 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error("Error fetching weather data:", error);
                 weatherDiv.innerHTML = `<p>Error fetching weather data.</p>`;
             });
+        
     }
 
-    function displayWeather(data) {
-        const temperature = data.Temperature.Metric.Value;
-        const weather = data.WeatherText;
-        const weatherContent = `
-            <h2>Weather</h2>
-            <p>Temperature: ${temperature}°C</p>
-            <p>Weather: ${weather}</p>
-        `;
-        weatherDiv.innerHTML = weatherContent;
+    
+    function fetch5DailyData(locationKey) {
+        const url = `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${locationKey}?apikey=${apiKey}&metric=true`;
+    
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.DailyForecasts && data.DailyForecasts.length > 0) {
+                    displayDailyForecasts(data.DailyForecasts);
+                } else {
+                    weatherDiv.innerHTML = `<p>No daily forecast data available.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching daily forecast data:", error);
+                weatherDiv.innerHTML = `<p>Error fetching daily forecast data.</p>`;
+            });
     }
+
+    
+    
+    
+
+
+//display Function
+
+function displayWeather(data) {
+    const temperature = data.Temperature.Metric.Value;
+    const weather = data.WeatherText;
+    const weatherContent = `
+        <h2>Weather</h2>
+        <p>Temperature: ${temperature}°C</p>
+        <p>Weather: ${weather}</p>
+    `;
+    weatherDiv.innerHTML = weatherContent;
+}
+
+
+    weatherDiv.innerHTML += hourlyForecastContent;
+}
+
+function displayDailyForecasts(dailyForecasts) {
+    let dailyForecastContent = '<h2>5-Day Daily Forecast</h2>';
+
+    dailyForecasts.forEach(forecast => {
+        const date = new Date(forecast.Date);
+        const temperatureMin = forecast.Temperature.Minimum.Value;
+        const temperatureMax = forecast.Temperature.Maximum.Value;
+        const dayWeather = forecast.Day.IconPhrase;
+        const nightWeather = forecast.Night.IconPhrase;
+
+        dailyForecastContent += `
+            <div>
+                <p>Date: ${date.toDateString()}</p>
+                <p>Min Temperature: ${temperatureMin}°C</p>
+                <p>Max Temperature: ${temperatureMax}°C</p>
+                <p>Day Weather: ${dayWeather}</p>
+                <p>Night Weather: ${nightWeather}</p>
+            </div>
+        `;
+    });
+
+    weatherDiv.innerHTML += dailyForecastContent;
+}
+ 
+    
+    
+    
 });
