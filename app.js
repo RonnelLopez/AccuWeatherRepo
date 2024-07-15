@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     const locationKey = data[0].Key;
                     fetchWeatherData(locationKey);
                     fetch5DailyData(locationKey);
-                    
+                    fetchHourlyForecastData(locationKey);
                 } else {
                     weatherDiv.innerHTML = `<p>City not found.</p>`;
                 }
@@ -49,7 +49,24 @@ document.addEventListener("DOMContentLoaded", function() {
         
     }
 
+    function fetchHourlyForecastData(locationKey) {
+        const url = `http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/${locationKey}?apikey=${apiKey}&metric=true`;
     
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    displayHourlyForecasts(data);
+                } else {
+                    weatherDiv.innerHTML += `<p>No hourly forecast data available.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching hourly forecast data:", error);
+                weatherDiv.innerHTML += `<p>Error fetching hourly forecast data.</p>`;
+            });
+    }
+
     function fetch5DailyData(locationKey) {
         const url = `http://dataservice.accuweather.com/forecasts/v1/daily/5day/${locationKey}?apikey=${apiKey}&metric=true`;
     
@@ -86,6 +103,22 @@ function displayWeather(data) {
     weatherDiv.innerHTML = weatherContent;
 }
 
+function displayHourlyForecasts(hourlyForecasts) {
+    let hourlyForecastContent = '<h2>Hourly Forecast</h2>';
+
+    hourlyForecasts.forEach(forecast => {
+        const dateTime = new Date(forecast.DateTime);
+        const temperature = forecast.Temperature.Value;
+        const weather = forecast.IconPhrase;
+
+        hourlyForecastContent += `
+            <div>
+                <p>Time: ${dateTime.toLocaleTimeString()}</p>
+                <p>Temperature: ${temperature}°C</p>
+                <p>Weather: ${weather}</p>
+            </div>
+        `;
+    });
 
     weatherDiv.innerHTML += hourlyForecastContent;
 }
